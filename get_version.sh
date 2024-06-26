@@ -1,10 +1,10 @@
 #!/bin/bash
 # Function to get the type of version bump
 get_version_bump_type() {
-    # Check for "BREAKING CHANGE" in commit messages
+    # Check for "MAJOR CHANGES" in commit messages
     if git log -1 --pretty=%B | grep -q "major changes"; then
         echo "major"
-    # Check for "feat" in commit messages
+    # Check for "MINOR CHANGES" in commit messages
     elif git log -1 --pretty=%B | grep -q "minor changes"; then
         echo "minor"
     # Default to "fix" or any other change
