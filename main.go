@@ -7,8 +7,8 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hello, World......")
-    fmt.Fprintf(w,  "Hi Docker-Hub Iam Here.......")
+    fmt.Fprintf(w, "Hello, World!!!!!!!!!")
+    fmt.Fprintf(w,  "Hi Docker-Hub Iam Here")
 }
 
 func main() {
