@@ -14,7 +14,7 @@ WORKDIR /app
 COPY . .
 
 # Build the application
-RUN go build -o my-go-app1
+RUN go build  main.go
 
 # Use a minimal image for the final build
 FROM alpine:latest
