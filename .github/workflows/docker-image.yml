@@ -23,7 +23,7 @@ jobs:
 
     - name: Build the Go app
       run: |
-        cd /app
+      
         go build -o main .
       
     - name: Log in to Docker Hub
@@ -37,7 +37,7 @@ jobs:
         chmod +x ./get_version.sh	
         export IMAGE_VERSION=$(./get_version.sh)
         echo "IMAGE_VERSION=${IMAGE_VERSION}" >> $GITHUB_ENV
-      shell: /usr/bin/bash -e {0}
+      
 
     - name: Build and tag the Docker image
       run: |
