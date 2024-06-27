@@ -22,6 +22,31 @@
 # # Output the new version
 # echo $NEW_VERSION
 
+# #!/bin/bash
+
+# # Docker Hub username
+# USERNAME=naveen775
+# # Repository name
+# REPOSITORY=my-go-app1
+
+# # Fetch the latest version tag from Docker Hub
+# latest_version=$(curl -s https://hub.docker.com/v2/repositories/$USERNAME/$REPOSITORY/tags | jq -r '.results[].name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+
+# # If there are no tags, start with v0.0.1
+# if [ -z "$latest_version" ]; then
+#   new_version="v0.0.1"
+# else
+#   # Increment the version number
+#   IFS='.' read -r -a version_parts <<< "${latest_version#v}"
+#   major=${version_parts[0]}
+#   minor=${version_parts[1]}
+#   patch=${version_parts[2]}
+#   patch=$((patch + 1))
+#   new_version="v${major}.${minor}.${patch}"
+# fi
+
+# echo "$new_version"
+
 #!/bin/bash
 
 # Docker Hub username
@@ -32,18 +57,17 @@ REPOSITORY=my-go-app1
 # Fetch the latest version tag from Docker Hub
 latest_version=$(curl -s https://hub.docker.com/v2/repositories/$USERNAME/$REPOSITORY/tags | jq -r '.results[].name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
 
-# If there are no tags, start with v0.0.1
+# If there are no tags, start with v1.0.0
 if [ -z "$latest_version" ]; then
-  new_version="v0.0.1"
+  new_version="v1.0.0"
 else
-  # Increment the version number
+  # Increment the major version number
   IFS='.' read -r -a version_parts <<< "${latest_version#v}"
   major=${version_parts[0]}
-  minor=${version_parts[1]}
-  patch=${version_parts[2]}
-  patch=$((patch + 1))
-  new_version="v${major}.${minor}.${patch}"
+  major=$((major + 1))
+  new_version="v${major}.0.0"
 fi
 
 echo "$new_version"
+
 
