@@ -24,7 +24,6 @@ jobs:
 
     - name: Initialize Go module and build
       run: |
-        go mod init
         go build -o main .
 
     - name: Log in to Docker Hub
