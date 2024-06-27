@@ -10,6 +10,7 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
@@ -33,15 +34,11 @@ jobs:
 
     - name: Get version number
       run: |
-        chmod +x ./get_version.sh
+        chmod +x ./get_version.sh	
         export IMAGE_VERSION=$(./get_version.sh)
         echo "IMAGE_VERSION=${IMAGE_VERSION}" >> $GITHUB_ENV
 
     - name: Build and tag the Docker image
       run: |
-        docker build -t my-go-app:${{ env.IMAGE_VERSION }} .
-        docker tag my-go-app:${{ env.IMAGE_VERSION }} ${{ secrets.DOCKER_USERNAME }}/my-go-app:${{ env.IMAGE_VERSION }}
-
-    - name: Push the Docker image
-      run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-go-app:${{ env.IMAGE_VERSION }}
+        docker build -t my-go-app1:${{ env.IMAGE_VERSION }} .
+        docker tag my-go-app1:${{ env.IMAGE_VERSION }} ${{ secrets.DOCKER_USERNAME }}/my-go-app1:${{ env.IMAGE_VERSION }}
