@@ -1,105 +1,4 @@
-# name: Build and Push Docker image
-
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - main
-
-# jobs:
-#   build:
-
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v2
-
-#     - name: Set up Go
-#       uses: actions/setup-go@v3
-#       with:
-#         go-version: 1.18
-
-#     - name: Build the Go app
-#       run: |
-#         go build main.go
-
-#     - name: Log in to Docker Hub
-#       uses: docker/login-action@v2
-#       with:
-#         username: ${{ secrets.DOCKER_USERNAME }}
-#         password: ${{ secrets.DOCKER_PASSWORD }}
-
-#     - name: Get version number
-#       run: |
-#         chmod +x ./get_version.sh	
-#         export IMAGE_VERSION=$(./get_version.sh)
-#         echo "IMAGE_VERSION=${IMAGE_VERSION}" >> $GITHUB_ENV
-
-#     - name: Build and tag the Docker image
-#       run: |
-#         docker build -t my-go-app1:${{ env.IMAGE_VERSION }} .
-#         docker tag my-go-app1:${{ env.IMAGE_VERSION }} ${{ secrets.DOCKER_USERNAME }}/my-go-app1:${{ env.IMAGE_VERSION }}
-
-#     - name: Push the Docker image
-#       run: |
-#         docker push ${{ secrets.DOCKER_USERNAME }}/my-go-app1:${{ env.IMAGE_VERSION }}
-
-# name: Build and Push Docker image
-
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - main
-
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v2
-
-#     - name: Set up Go
-#       uses: actions/setup-go@v3
-#       with:
-#         go-version: 1.18
-
-#     - name: Build the Go app
-#       run: |
-#         go build main.go
-
-#     - name: Install jq
-#       run: sudo apt-get install -y jq
-
-#     - name: Log in to Docker Hub
-#       uses: docker/login-action@v2
-#       with:
-#         username: ${{ secrets.DOCKER_USERNAME }}
-#         password: ${{ secrets.DOCKER_PASSWORD }}
-
-#     - name: Get version number
-#       run: |
-#         chmod +x ./get_version.sh
-#         export IMAGE_VERSION=$(./get_version.sh)
-#         echo "IMAGE_VERSION=${IMAGE_VERSION}" >> $GITHUB_ENV
-
-#     - name: Build and tag the Docker image
-#       run: |
-#         docker build -t my-go-app1:${{ env.IMAGE_VERSION }} .
-#         docker tag my-go-app1:${{ env.IMAGE_VERSION }} ${{ secrets.DOCKER_USERNAME }}/my-go-app1:${{ env.IMAGE_VERSION }}
-
-#     - name: Push the Docker image
-#       run: |
-#         docker push ${{ secrets.DOCKER_USERNAME }}/my-go-app1:${{ env.IMAGE_VERSION }}
-
 name: Build and Push Docker image
-
 on:
   push:
     branches:
@@ -107,7 +6,6 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -120,13 +18,8 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.18
-
-    - name: Build the Go app
-      run: |
-        go build main.go
-
-    - name: Install jq
-      run: sudo apt-get install -y jq
+    # - name: Install jq
+    #   run: sudo apt-get install -y jq
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
@@ -134,19 +27,10 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Get version number
+    - name: Build, Tag, and Push the Image to Docker Hub
+      id: build-image
+      env:
+        IMAGE_TAG: latest
       run: |
-        chmod +x ./get_version.sh
-        export IMAGE_VERSION=$(./get_version.sh)
-        echo "IMAGE_VERSION=${IMAGE_VERSION}" >> $GITHUB_ENV
-
-    - name: Build and tag the Docker image
-      run: |
-        docker build -t my-go-app1:${{ env.IMAGE_VERSION }} .
-        docker tag my-go-app1:${{ env.IMAGE_VERSION }} ${{ secrets.DOCKER_USERNAME }}/my-go-app1:${{ env.IMAGE_VERSION }}
-
-    - name: Push the Docker image
-      run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-go-app1:${{ env.IMAGE_VERSION }}
-
-
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-go-app:$IMAGE_TAG .
+        docker push ${{ secrets.DOCKER_USERNAME }}/my-go-app:$IMAGE_TAG
