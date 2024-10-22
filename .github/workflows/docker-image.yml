@@ -40,7 +40,6 @@
 #       run: |
 #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
 name: Build and Push Go Application to Docker Hub
 on:
   push:
@@ -71,21 +70,16 @@ jobs:
             exit 1
           fi
 
-          # Fetch the tags for the Docker image
+          # Fetch the latest tag for the Docker image
           echo "Fetching tags for image $IMAGE_NAME..."
-          response=$(curl -s -H "Authorization: Bearer $DOCKER_TOKEN" \
-            "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/")
+          latest_tag=$(curl -s -H "Authorization: Bearer $DOCKER_TOKEN" \
+            "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/" \
+            | jq -r '.results[].name' | sort -V | tail -n 1)
 
-          # Check if response is null
-          if echo "$response" | jq -e '.results == null' > /dev/null; then
+          # If no tags found, start with version 0.0.0
+          if [ -z "$latest_tag" ]; then
             latest_tag="v0.0.0"
-          else
-            latest_tag=$(echo "$response" | jq -r '.results[].name' | sort -V | tail -n 1)
-            if [ -z "$latest_tag" ]; then
-              latest_tag="v0.0.0"
-            fi
           fi
-          
           echo "Latest tag from Docker Hub: $latest_tag"
           echo "latest_tag=$latest_tag" 
 
@@ -100,7 +94,11 @@ jobs:
           IFS='.' read -r major minor patch <<< "$current_version"
 
           # Determine the type of change
-          commits=$(git log --oneline)
+          if git rev-parse "v${latest_tag#v}" >/dev/null 2>&1; then
+            commits=$(git log --oneline "$(git describe --tags --abbrev=0)"..HEAD)
+          else
+            commits=$(git log --oneline)
+          fi
           echo "Commits=$commits"
 
           increment_major=false
