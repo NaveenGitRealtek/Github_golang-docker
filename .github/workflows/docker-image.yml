@@ -41,7 +41,7 @@
 #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-name: Build and Push Go Application To Docker Hub
+name: Build and Push Go Application to Docker Hub
 on:
   push:
     branches:
@@ -73,14 +73,19 @@ jobs:
 
           # Fetch the tags for the Docker image
           echo "Fetching tags for image $IMAGE_NAME..."
-          latest_tag=$(curl -s -H "Authorization: Bearer $DOCKER_TOKEN" \
-            "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/" \
-            | jq -r '.results[].name')
+          response=$(curl -s -H "Authorization: Bearer $DOCKER_TOKEN" \
+            "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/")
 
-          # Fetch the latest version from Docker Hub
-          if [ -z "$latest_tag" ]; then
+          # Check if response is null
+          if echo "$response" | jq -e '.results == null' > /dev/null; then
             latest_tag="v0.0.0"
+          else
+            latest_tag=$(echo "$response" | jq -r '.results[].name' | sort -V | tail -n 1)
+            if [ -z "$latest_tag" ]; then
+              latest_tag="v0.0.0"
+            fi
           fi
+          
           echo "Latest tag from Docker Hub: $latest_tag"
           echo "latest_tag=$latest_tag" 
 
@@ -148,5 +153,3 @@ jobs:
           docker build -t $REPOSITORY:$IMAGE_TAG .
           docker push $REPOSITORY:$IMAGE_TAG
           echo "Docker image built and pushed: $REPOSITORY:$IMAGE_TAG"
-
-
