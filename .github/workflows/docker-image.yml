@@ -81,7 +81,7 @@ jobs:
             latest_tag="v0.0.0"
           fi
           echo "Latest tag from Docker Hub: $latest_tag"
-          echo "latest_tag=$latest_tag" 
+          echo "latest_tag=$latest_tag"
 
           # Extract and increment version
           current_version=${latest_tag#v}
