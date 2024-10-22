@@ -30,7 +30,7 @@ WORKDIR /app
 # Copy the source code
 COPY . .
 
-# Build the application
+# Build the applications
 RUN go build -o my-go-app main.go
 
 # Use a minimal base image to run the application
