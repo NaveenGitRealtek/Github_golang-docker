@@ -40,7 +40,7 @@
 #       run: |
 #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-name: Build and Push Go Application to Docker Hub
+name: Build and Push Go App to Docker Hub
 on:
   push:
     branches:
@@ -53,9 +53,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      - name: Install jq
-        run: sudo apt-get install -y jq
 
       - name: Run versioning script
         run: |
@@ -75,6 +72,7 @@ jobs:
 
           # Fetch the tags for the private Docker image using Docker Hub API
           echo "Fetching tags for image $IMAGE_NAME..."
+
           latest_tag=$(curl -s -H "Authorization: Bearer $DOCKER_TOKEN" \
             "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/" \
             | jq -r '.results[].name')
@@ -128,11 +126,8 @@ jobs:
           # Increment the version based on the type of change
           if [ "$increment_major" = true ]; then
             major=$((major + 1))
-            minor=0
-            patch=0
           elif [ "$increment_minor" = true ]; then
             minor=$((minor + 1))
-            patch=0
           elif [ "$increment_patch" = true ]; then
             patch=$((patch + 1))
           fi
@@ -147,7 +142,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker Image
+      - name: Build Docker Images
         env: 
           IMAGE_TAG: ${{ env.new_version }}  # Reference new_version stored in the environment
           REPOSITORY: naveen775/test_repo
@@ -155,4 +150,3 @@ jobs:
           docker build -t $REPOSITORY:$IMAGE_TAG .
           docker push $REPOSITORY:$IMAGE_TAG
           echo "Docker image built and pushed: $REPOSITORY:$IMAGE_TAG"
-
