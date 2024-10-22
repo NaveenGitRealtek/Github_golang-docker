@@ -143,11 +143,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker Images
+      - name: Build Docker Image
         env: 
           IMAGE_TAG: ${{ env.new_version }}  # Reference new_version stored in the environment
           REPOSITORY: naveen775/test_repo
         run: |
+          echo "Building Docker image with tag: $IMAGE_TAG"
           docker build -t $REPOSITORY:$IMAGE_TAG .
           docker push $REPOSITORY:$IMAGE_TAG
           echo "Docker image built and pushed: $REPOSITORY:$IMAGE_TAG"
+
