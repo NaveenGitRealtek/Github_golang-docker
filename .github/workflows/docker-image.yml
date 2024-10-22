@@ -147,7 +147,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker Images
+      - name: Build Docker Image
         env: 
           IMAGE_TAG: ${{ env.new_version }}  # Reference new_version stored in the environment
           REPOSITORY: naveen775/test_repo
