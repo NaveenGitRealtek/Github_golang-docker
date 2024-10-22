@@ -41,3 +41,112 @@
 #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+name: Build and Push Go Application to Docker Hub
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run versioning script
+        run: |
+          DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_TOKEN=${{ secrets.DOCKERHUB_TOKEN }}
+          IMAGE_NAME="naveen775/test_repo"
+
+          # Authenticate to Docker Hub
+          echo "Logging in to Docker Hub..."
+          echo "$DOCKER_TOKEN" | docker login --username "$DOCKER_USERNAME" --password-stdin
+
+          # Check for successful login
+          if [ $? -ne 0 ]; then
+            echo "Login failed. Please check your credentials."
+            exit 1
+          fi
+
+          # Fetch the tags for the Docker image
+          echo "Fetching tags for image $IMAGE_NAME..."
+          latest_tag=$(curl -s -H "Authorization: Bearer $DOCKER_TOKEN" \
+            "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/" \
+            | jq -r '.results[].name')
+
+          # Fetch the latest version from Docker Hub
+          if [ -z "$latest_tag" ]; then
+            latest_tag="v0.0.0"
+          fi
+          echo "Latest tag from Docker Hub: $latest_tag"
+          echo "latest_tag=$latest_tag" 
+
+          # Extract and increment version
+          current_version=${latest_tag#v}
+          echo "Current version: $current_version"
+
+          if [ "$current_version" = "null" ] || [ -z "$current_version" ]; then
+            current_version="0.0.0"
+          fi
+
+          IFS='.' read -r major minor patch <<< "$current_version"
+
+          # Determine the type of change
+          commits=$(git log --oneline)
+          echo "Commits=$commits"
+
+          increment_major=false
+          increment_minor=false
+          increment_patch=false
+
+          if echo "$commits" | grep -q "ma:"; then
+            increment_major=true
+          fi
+          if echo "$commits" | grep -q "mi:"; then
+            increment_minor=true
+          fi
+          if echo "$commits" | grep -q "pa:"; then
+            increment_patch=true
+          fi
+
+          # Default to incrementing patch if no ma:, mi:, or pa: tags are found
+          if [ "$increment_major" = false ] && [ "$increment_minor" = false ] && [ "$increment_patch" = false ]; then
+            echo "No 'ma:', 'mi:', or 'pa:' found in commit messages. Defaulting to patch increment."
+            increment_patch=true
+          fi
+
+          # Increment the version based on the type of change
+          if [ "$increment_major" = true ]; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+          elif [ "$increment_minor" = true ]; then
+            minor=$((minor + 1))
+            patch=0
+          elif [ "$increment_patch" = true ]; then
+            patch=$((patch + 1))
+          fi
+
+          new_version="v$major.$minor.$patch"
+          echo "New version: $new_version"
+          echo "new_version=$new_version" >> $GITHUB_ENV  # Save the new version to GitHub environment
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Image
+        env: 
+          IMAGE_TAG: ${{ env.new_version }}  # Reference new_version stored in the environment
+          REPOSITORY: naveen775/test_repo
+        run: |
+          docker build -t $REPOSITORY:$IMAGE_TAG .
+          docker push $REPOSITORY:$IMAGE_TAG
+          echo "Docker image built and pushed: $REPOSITORY:$IMAGE_TAG"
+
+
