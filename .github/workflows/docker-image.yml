@@ -54,11 +54,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Run versioning script
         run: |
           DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKER_TOKEN=${{ secrets.DOCKERHUB_TOKEN }}
-          IMAGE_NAME="naveen775/test_repo"
+          DOCKER_TOKEN=${{ secrets.DOCKERHUB_TOKEN }} # You can also use a password, but token is recommended
+          IMAGE_NAME="naveen775/test_repo" # Replace this with your image name
 
           # Authenticate to Docker Hub
           echo "Logging in to Docker Hub..."
@@ -70,20 +73,21 @@ jobs:
             exit 1
           fi
 
-          # Fetch the latest tag for the Docker image
+          # Fetch the tags for the private Docker image using Docker Hub API
           echo "Fetching tags for image $IMAGE_NAME..."
           latest_tag=$(curl -s -H "Authorization: Bearer $DOCKER_TOKEN" \
             "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/" \
-            | jq -r '.results[].name' | sort -V | tail -n 1)
+            | jq -r '.results[].name')
 
-          # If no tags found, start with version 0.0.0
+          # Fetch the latest version from Docker Hub
           if [ -z "$latest_tag" ]; then
             latest_tag="v0.0.0"
           fi
           echo "Latest tag from Docker Hub: $latest_tag"
-          echo "latest_tag=$latest_tag"
+          echo "latest_tag=$latest_tag" 
 
           # Extract and increment version
+          echo "Current version from Docker Hub: $latest_tag"
           current_version=${latest_tag#v}
           echo "Current version: $current_version"
 
@@ -148,7 +152,6 @@ jobs:
           IMAGE_TAG: ${{ env.new_version }}  # Reference new_version stored in the environment
           REPOSITORY: naveen775/test_repo
         run: |
-          echo "Building Docker image with tag: $IMAGE_TAG"
           docker build -t $REPOSITORY:$IMAGE_TAG .
           docker push $REPOSITORY:$IMAGE_TAG
           echo "Docker image built and pushed: $REPOSITORY:$IMAGE_TAG"
